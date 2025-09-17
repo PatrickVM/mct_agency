@@ -29,13 +29,29 @@ interface OnboardingFormProps {
     email: string;
     profile: any;
   };
+  mode?: "create" | "edit";
+  initialProfile?: {
+    displayName: string;
+    bio: string | null;
+    hobbies: string[];
+    socialLinks: Record<string, string> | null;
+    avatarUrl: string | null;
+  };
 }
 
-export default function OnboardingForm({ user }: OnboardingFormProps) {
-  const [hobbies, setHobbies] = useState<string[]>([]);
+export default function OnboardingForm({
+  user,
+  mode = "create",
+  initialProfile,
+}: OnboardingFormProps) {
+  const [hobbies, setHobbies] = useState<string[]>(
+    initialProfile?.hobbies ?? []
+  );
   const [newHobby, setNewHobby] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const [avatarPreview, setAvatarPreview] = useState<string>(
+    initialProfile?.avatarUrl ?? ""
+  );
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -44,17 +60,29 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ProfileFormData>();
+  } = useForm<ProfileFormData>({
+    defaultValues: {
+      displayName: initialProfile?.displayName ?? "",
+      bio: initialProfile?.bio ?? "",
+      website: initialProfile?.socialLinks?.website ?? "",
+      instagram: initialProfile?.socialLinks?.instagram ?? "",
+      tiktok: initialProfile?.socialLinks?.tiktok ?? "",
+    },
+  });
 
   const addHobby = () => {
-    if (newHobby.trim() && !hobbies.includes(newHobby.trim()) && hobbies.length < 10) {
+    if (
+      newHobby.trim() &&
+      !hobbies.includes(newHobby.trim()) &&
+      hobbies.length < 10
+    ) {
       setHobbies([...hobbies, newHobby.trim()]);
       setNewHobby("");
     }
   };
 
   const removeHobby = (hobby: string) => {
-    setHobbies(hobbies.filter(h => h !== hobby));
+    setHobbies(hobbies.filter((h) => h !== hobby));
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +101,7 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
     setLoading(true);
 
     try {
-      let avatarUrl = "";
+      let newAvatarUrl: string | null = null;
 
       // Upload avatar if provided
       if (avatar) {
@@ -89,49 +117,86 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
           const data = await response.json();
 
           if (response.ok) {
-            avatarUrl = data.data.url;
+            newAvatarUrl = data.data.url as string;
           } else {
             throw new Error(data.message || "Upload failed");
           }
         } catch (error) {
           console.error("Avatar upload failed:", error);
-          toast.error("Avatar upload failed, but profile will be created without it");
+          toast.error(
+            mode === "create"
+              ? "Avatar upload failed, but profile will be created without it"
+              : "Avatar upload failed; keeping your current avatar"
+          );
         }
       }
 
-      // Create profile
+      // Build social links
       const socialLinks = {
         ...(data.website && { website: data.website }),
         ...(data.instagram && { instagram: data.instagram }),
         ...(data.tiktok && { tiktok: data.tiktok }),
       };
 
-      const profileData = {
-        displayName: data.displayName,
-        bio: data.bio || "",
-        hobbies,
-        socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
-        avatarUrl: avatarUrl || null,
-      };
+      if (mode === "create") {
+        const profileData = {
+          displayName: data.displayName,
+          bio: data.bio || "",
+          hobbies,
+          socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
+          avatarUrl: newAvatarUrl || null,
+        };
 
-      const response = await fetch("/api/profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profileData),
-      });
+        const response = await fetch("/api/profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(profileData),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create profile");
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to create profile");
+        }
+
+        toast.success("Profile created successfully!");
+      } else {
+        // Edit (PATCH)
+        const patchPayload: Record<string, any> = {
+          displayName: data.displayName,
+          bio: data.bio || "",
+          hobbies,
+          socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
+        };
+
+        if (newAvatarUrl) {
+          patchPayload.avatarUrl = newAvatarUrl;
+        }
+
+        const response = await fetch("/api/profile", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(patchPayload),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to update profile");
+        }
+
+        toast.success("Profile updated");
       }
-
-      toast.success("Profile created successfully!");
       router.push("/app");
     } catch (error) {
       console.error("Profile creation failed:", error);
-      toast.error("Failed to create profile. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save profile. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -142,7 +207,9 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
   return (
     <Card className="border-2">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">Create Your Profile</CardTitle>
+        <CardTitle className="text-2xl text-center">
+          {mode === "create" ? "Create Your Profile" : "Edit Your Profile"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -185,7 +252,9 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
               className={errors.displayName ? "border-red-500" : ""}
             />
             {errors.displayName && (
-              <p className="text-red-500 text-sm mt-1">{errors.displayName.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.displayName.message}
+              </p>
             )}
           </div>
 
@@ -264,7 +333,9 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
                 className={errors.website ? "border-red-500" : ""}
               />
               {errors.website && (
-                <p className="text-red-500 text-sm mt-1">{errors.website.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.website.message}
+                </p>
               )}
             </div>
 
@@ -276,19 +347,18 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
             </div>
 
             <div>
-              <Input
-                {...register("tiktok")}
-                placeholder="@tiktok_username"
-              />
+              <Input {...register("tiktok")} placeholder="@tiktok_username" />
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? "Creating Profile..." : "Complete Setup"}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading
+              ? mode === "create"
+                ? "Creating Profile..."
+                : "Saving..."
+              : mode === "create"
+                ? "Complete Setup"
+                : "Save Changes"}
           </Button>
         </form>
       </CardContent>

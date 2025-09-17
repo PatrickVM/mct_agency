@@ -2,18 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-
-const profileSchema = z.object({
-  displayName: z.string().min(2),
-  bio: z.string().optional(),
-  hobbies: z.array(z.string()).max(10),
-  socialLinks: z.object({
-    website: z.string().url().optional(),
-    instagram: z.string().optional(),
-    tiktok: z.string().optional(),
-  }).optional().nullable(),
-  avatarUrl: z.string().url().optional().or(z.literal("")).nullable(),
-});
+import { profileSchema, profilePatchSchema } from "@/lib/schemas/profile";
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,7 +78,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validatedData = profileSchema.partial().parse(body);
+    const validatedData = profilePatchSchema.parse(body);
 
     const profile = await prisma.profile.update({
       where: { userId: user.id },
