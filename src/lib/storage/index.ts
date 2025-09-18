@@ -1,21 +1,34 @@
 import { StorageService } from './types';
 import { LocalStorageService } from './local-storage';
+import { SupabaseStorageService } from './supabase-storage';
 
-// Storage factory - easily swap providers later
+// Storage factory - auto-detects environment and selects appropriate provider
 export function createStorageService(): StorageService {
-  const provider = process.env.STORAGE_PROVIDER || 'local';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isVercel = process.env.VERCEL === '1';
+  const provider = process.env.STORAGE_PROVIDER;
 
-  switch (provider) {
+  // Auto-select based on environment
+  let actualProvider: string;
+  if (provider) {
+    actualProvider = provider;
+  } else if (isProduction || isVercel) {
+    actualProvider = 'supabase';
+  } else {
+    actualProvider = 'local';
+  }
+
+  switch (actualProvider) {
     case 'local':
       return new LocalStorageService();
     case 'supabase':
-      // TODO: Implement SupabaseStorageService when needed
-      throw new Error('Supabase storage not implemented yet');
+      return new SupabaseStorageService();
     default:
-      throw new Error(`Unknown storage provider: ${provider}`);
+      throw new Error(`Unknown storage provider: ${actualProvider}`);
   }
 }
 
 // Export types and utilities
 export * from './types';
 export * from './image-processor';
+export * from './supabase-transforms';

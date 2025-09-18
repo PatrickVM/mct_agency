@@ -2,9 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  experimental: {
-    serverComponentsExternalPackages: ["@prisma/client"],
-  },
+  serverExternalPackages: ["@prisma/client"],
   images: {
     domains: ["localhost"],
     remotePatterns: [
@@ -15,11 +13,6 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/**",
       },
     ],
-  },
-  api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
   },
 };
 
