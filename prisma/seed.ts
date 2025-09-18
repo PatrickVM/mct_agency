@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Create an admin user
-  const admin = await prisma.user.upsert({
+  const admin = await prisma.users.upsert({
     where: { email: "admin@murraycreative.com" },
     update: {},
     create: {
@@ -16,7 +16,7 @@ async function main() {
   console.log("Created admin user:", admin);
 
   // Create a sample talent user
-  const talent = await prisma.user.upsert({
+  const talent = await prisma.users.upsert({
     where: { email: "talent@example.com" },
     update: {},
     create: {
