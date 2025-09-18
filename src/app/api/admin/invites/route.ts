@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     const inviteToken = await createInviteToken(email, admin.id);
 
     // Send magic link
+    let inviteUrl = null;
     try {
       await sendMagicLink(email, inviteToken.token);
     } catch (error) {
@@ -42,9 +43,15 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if email sending fails
     }
 
+    // For local development, provide the invite URL directly
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('/api/mock')) {
+      inviteUrl = `${process.env.NEXTAUTH_URL}/invite/accept?token=${inviteToken.token}`;
+    }
+
     return NextResponse.json({
       success: true,
       invite: inviteToken,
+      inviteUrl, // Include the URL for local development
     });
   } catch (error) {
     console.error("Create invite error:", error);

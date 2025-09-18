@@ -47,8 +47,14 @@ export async function consumeInviteToken(token: string) {
 }
 
 export async function sendMagicLink(email: string, inviteToken: string) {
-  const supabase = await createServiceClient();
+  // In local development with mock Supabase, skip actual email sending
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('/api/mock')) {
+    console.log(`[MOCK] Magic link would be sent to ${email}`);
+    console.log(`[MOCK] Invite URL: ${process.env.NEXTAUTH_URL}/invite/accept?token=${inviteToken}`);
+    return;
+  }
 
+  const supabase = await createServiceClient();
   const redirectTo = `${process.env.NEXTAUTH_URL}/invite/accept?token=${inviteToken}`;
 
   const { error } = await supabase.auth.signInWithOtp({
