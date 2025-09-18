@@ -8,8 +8,10 @@ async function main() {
     where: { email: "admin@murraycreative.com" },
     update: {},
     create: {
+      id: "admin-user-id",
       email: "admin@murraycreative.com",
       role: "admin",
+      updatedAt: new Date(),
     },
   });
 
@@ -20,10 +22,13 @@ async function main() {
     where: { email: "talent@example.com" },
     update: {},
     create: {
+      id: "talent-user-id",
       email: "talent@example.com",
       role: "user",
-      profile: {
+      updatedAt: new Date(),
+      profiles: {
         create: {
+          id: "talent-profile-id",
           displayName: "Jane Doe",
           bio: "Aspiring actress and model with a passion for storytelling and creative expression.",
           hobbies: ["Acting", "Photography", "Dancing", "Yoga"],
@@ -32,11 +37,12 @@ async function main() {
             website: "https://janedoe.com",
           },
           isPublic: true,
+          updatedAt: new Date(),
         },
       },
     },
     include: {
-      profile: true,
+      profiles: true,
     },
   });
 
