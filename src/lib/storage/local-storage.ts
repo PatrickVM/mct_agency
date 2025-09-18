@@ -1,7 +1,23 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { StorageService, UploadResult } from './types';
-import { processImage, AVATAR_CONFIG, ADMIN_PHOTO_CONFIG } from './image-processor';
+
+// Conditionally import image processor only in development
+let processImage: ((buffer: Buffer, options: any) => Promise<Buffer>) | undefined;
+let AVATAR_CONFIG: any;
+let ADMIN_PHOTO_CONFIG: any;
+
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const imageProcessor = require('./image-processor');
+    processImage = imageProcessor.processImage;
+    AVATAR_CONFIG = imageProcessor.AVATAR_CONFIG;
+    ADMIN_PHOTO_CONFIG = imageProcessor.ADMIN_PHOTO_CONFIG;
+  } catch {
+    console.warn('Sharp not available, image processing disabled');
+  }
+}
 
 export class LocalStorageService implements StorageService {
   private uploadsDir: string;
@@ -25,15 +41,15 @@ export class LocalStorageService implements StorageService {
     }
   }
 
-  private generateFilename(originalName: string, prefix?: string): string {
+  private generateFilename(originalName: string, prefix?: string, extension?: string): string {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
-    const extension = 'webp'; // Always convert to WebP
+    const ext = extension || path.extname(originalName).slice(1) || 'jpg';
     const baseName = path.parse(originalName).name.replace(/[^a-zA-Z0-9]/g, '-');
 
     return prefix
-      ? `${prefix}-${baseName}-${timestamp}-${random}.${extension}`
-      : `${baseName}-${timestamp}-${random}.${extension}`;
+      ? `${prefix}-${baseName}-${timestamp}-${random}.${ext}`
+      : `${baseName}-${timestamp}-${random}.${ext}`;
   }
 
   async uploadAvatar(
@@ -45,11 +61,17 @@ export class LocalStorageService implements StorageService {
     const userDir = path.join(this.uploadsDir, 'avatars', userId);
     await this.ensureDirectoryExists(userDir);
 
-    // Process image
-    const processedBuffer = await processImage(file, AVATAR_CONFIG);
+    // Process image only in development
+    let processedBuffer = file;
+    let extension = path.extname(originalName).slice(1) || 'jpg';
+
+    if (processImage && AVATAR_CONFIG) {
+      processedBuffer = await processImage(file, AVATAR_CONFIG);
+      extension = 'webp';
+    }
 
     // Generate filename
-    const filename = this.generateFilename(originalName, 'avatar');
+    const filename = this.generateFilename(originalName, 'avatar', extension);
     const filePath = path.join(userDir, filename);
     const relativePath = path.join('avatars', userId, filename);
 
@@ -87,11 +109,17 @@ export class LocalStorageService implements StorageService {
     const adminDir = path.join(this.uploadsDir, 'admin', sanitizedFolder);
     await this.ensureDirectoryExists(adminDir);
 
-    // Process image
-    const processedBuffer = await processImage(file, ADMIN_PHOTO_CONFIG);
+    // Process image only in development
+    let processedBuffer = file;
+    let extension = path.extname(originalName).slice(1) || 'jpg';
+
+    if (processImage && ADMIN_PHOTO_CONFIG) {
+      processedBuffer = await processImage(file, ADMIN_PHOTO_CONFIG);
+      extension = 'webp';
+    }
 
     // Generate filename
-    const filename = this.generateFilename(originalName);
+    const filename = this.generateFilename(originalName, undefined, extension);
     const filePath = path.join(adminDir, filename);
     const relativePath = path.join('admin', sanitizedFolder, filename);
 

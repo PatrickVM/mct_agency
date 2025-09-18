@@ -30,5 +30,16 @@ export function createStorageService(): StorageService {
 
 // Export types and utilities
 export * from './types';
-export * from './image-processor';
 export * from './supabase-transforms';
+
+// Conditionally export image processor only in development
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    // Dynamic export of image processor for development only
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const imageProcessor = require('./image-processor');
+    module.exports = { ...module.exports, ...imageProcessor };
+  } catch {
+    console.warn('Sharp not available for development image processing');
+  }
+}
