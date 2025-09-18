@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has a profile
-    if (user.profile) {
+    if (user.profiles) {
       return NextResponse.json(
         { success: false, message: "Profile already exists" },
         { status: 400 }
@@ -26,8 +26,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = profileSchema.parse(body);
 
-    const profile = await prisma.profile.create({
+    const profile = await prisma.profiles.create({
       data: {
+        id: `profile-${user.id}-${Date.now()}`,
         userId: user.id,
         displayName: validatedData.displayName,
         bio: validatedData.bio || null,
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
         socialLinks: validatedData.socialLinks || undefined,
         avatarUrl: validatedData.avatarUrl,
         isPublic: false,
+        updatedAt: new Date(),
       },
     });
 
@@ -70,7 +72,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if (!user.profile) {
+    if (!user.profiles) {
       return NextResponse.json(
         { success: false, message: "Profile not found" },
         { status: 404 }
@@ -90,7 +92,7 @@ export async function PATCH(request: NextRequest) {
       updateData.socialLinks = undefined;
     }
 
-    const profile = await prisma.profile.update({
+    const profile = await prisma.profiles.update({
       where: { userId: user.id },
       data: updateData,
     });

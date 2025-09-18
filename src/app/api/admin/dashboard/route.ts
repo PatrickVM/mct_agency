@@ -13,13 +13,13 @@ export async function GET(request: NextRequest) {
       pendingInvites,
       totalNotes,
     ] = await Promise.all([
-      prisma.user.count(),
-      prisma.profile.count(),
-      prisma.profile.count({ where: { isPublic: true } }),
-      prisma.inviteToken.count({
+      prisma.users.count(),
+      prisma.profiles.count(),
+      prisma.profiles.count({ where: { isPublic: true } }),
+      prisma.invite_tokens.count({
         where: { consumedAt: null, expiresAt: { gt: new Date() } },
       }),
-      prisma.note.count(),
+      prisma.notes.count(),
     ]);
 
     const stats = {

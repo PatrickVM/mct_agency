@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         id: user.id,
         email: user.email,
         createdAt: user.createdAt,
-        profile: user.profile,
+        profile: user.profiles,
       },
     });
   } catch (error) {

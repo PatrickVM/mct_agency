@@ -55,15 +55,21 @@ export async function POST(request: NextRequest) {
     );
 
     // Update user profile with new avatar URL
-    await prisma.profile.upsert({
+    await prisma.profiles.upsert({
       where: { userId: user.id },
       update: {
         avatarUrl: uploadResult.url,
       },
       create: {
+        id: `profile-${user.id}-${Date.now()}`,
         userId: user.id,
         displayName: user.email.split("@")[0], // Default display name
         avatarUrl: uploadResult.url,
+        bio: null,
+        hobbies: [],
+        socialLinks: undefined,
+        isPublic: false,
+        updatedAt: new Date(),
       },
     });
 
@@ -89,7 +95,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const user = await getCurrentUser();
 
-    if (!user || !user.profile?.avatarUrl) {
+    if (!user || !user.profiles?.avatarUrl) {
       return NextResponse.json(
         { success: false, message: "No avatar to delete" },
         { status: 400 }
@@ -97,7 +103,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Extract path from URL
-    const avatarUrl = user.profile.avatarUrl;
+    const avatarUrl = user.profiles.avatarUrl;
     const pathMatch = avatarUrl.match(/\/api\/files\/(.+)$/);
 
     if (pathMatch) {
@@ -106,7 +112,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Update profile to remove avatar URL
-    await prisma.profile.update({
+    await prisma.profiles.update({
       where: { userId: user.id },
       data: { avatarUrl: null },
     });

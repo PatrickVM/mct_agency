@@ -11,7 +11,7 @@ export async function DELETE(
     const { noteId } = await params;
 
     // Ensure the note belongs to the current admin
-    await prisma.note.delete({
+    await prisma.notes.delete({
       where: {
         id: noteId,
         adminUserId: admin.id,

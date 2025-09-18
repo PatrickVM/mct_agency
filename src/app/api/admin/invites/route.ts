@@ -12,7 +12,7 @@ export async function GET() {
   try {
     const admin = await requireAdmin();
 
-    const invites = await prisma.inviteToken.findMany({
+    const invites = await prisma.invite_tokens.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
     });

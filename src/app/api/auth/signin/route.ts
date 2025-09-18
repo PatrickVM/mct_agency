@@ -22,37 +22,41 @@ export async function POST(request: NextRequest) {
 
     if (email === "admin@murraycreative.com" && password === "admin123") {
       // Check if admin exists in database, create if not
-      user = await prisma.user.upsert({
+      user = await prisma.users.upsert({
         where: { email },
         update: {},
         create: {
+          id: `admin-${Date.now()}`,
           email,
           role: "admin",
+          updatedAt: new Date(),
         },
         include: {
-          profile: true,
+          profiles: true,
         },
       });
       isValidLogin = true;
     } else if (email === "user@example.com" && password === "user123") {
       // Check if user exists in database, create if not
-      user = await prisma.user.upsert({
+      user = await prisma.users.upsert({
         where: { email },
         update: {},
         create: {
+          id: `user-${Date.now()}`,
           email,
           role: "user",
+          updatedAt: new Date(),
         },
         include: {
-          profile: true,
+          profiles: true,
         },
       });
       isValidLogin = true;
     } else {
       // Try to find existing user in database with any password for development
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await prisma.users.findUnique({
         where: { email },
-        include: { profile: true },
+        include: { profiles: true },
       });
 
       if (existingUser && password === "dev123") {
@@ -87,7 +91,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         role: user.role,
-        profile: user.profile || null,
+        profile: user.profiles || null,
       },
     });
   } catch (error) {

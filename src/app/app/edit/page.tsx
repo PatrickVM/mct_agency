@@ -5,11 +5,11 @@ import { redirect } from "next/navigation";
 export default async function EditProfilePage() {
   const user = await requireAuth();
 
-  if (!user.profile) {
+  if (!user.profiles) {
     redirect("/onboarding");
   }
 
-  const profile = user.profile;
+  const profile = user.profiles;
   const socialLinks: Record<string, string> | null = profile.socialLinks
     ? (profile.socialLinks as unknown as Record<string, string>)
     : null;

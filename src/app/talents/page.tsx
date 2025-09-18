@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Suspense } from "react";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 interface PublicProfile {
   id: string;
@@ -12,14 +13,14 @@ interface PublicProfile {
   bio: string | null;
   hobbies: string[];
   avatarUrl: string | null;
-  socialLinks: Record<string, string> | null;
-  user: {
+  socialLinks: JsonValue;
+  users: {
     email: string;
   };
 }
 
 async function getPublicProfiles(searchTerm?: string) {
-  const profiles = await prisma.profile.findMany({
+  const profiles = await prisma.profiles.findMany({
     where: {
       isPublic: true,
       ...(searchTerm && {
@@ -31,7 +32,7 @@ async function getPublicProfiles(searchTerm?: string) {
       }),
     },
     include: {
-      user: {
+      users: {
         select: { email: true },
       },
     },

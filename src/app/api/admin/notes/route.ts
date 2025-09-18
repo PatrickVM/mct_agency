@@ -12,7 +12,7 @@ export async function GET() {
   try {
     const admin = await requireAdmin();
 
-    const notes = await prisma.note.findMany({
+    const notes = await prisma.notes.findMany({
       where: { adminUserId: admin.id },
       orderBy: { createdAt: "desc" },
     });
@@ -20,10 +20,10 @@ export async function GET() {
     // Manually fetch talent user data for each note
     const notesWithTalentUser = await Promise.all(
       notes.map(async (note) => {
-        const talentUser = await prisma.user.findUnique({
+        const talentUser = await prisma.users.findUnique({
           where: { id: note.talentUserId },
           select: {
-            profile: {
+            profiles: {
               select: {
                 displayName: true,
                 avatarUrl: true,
@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { talentUserId, body: noteBody } = createNoteSchema.parse(body);
 
-    const note = await prisma.note.create({
+    const note = await prisma.notes.create({
       data: {
+        id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         talentUserId,
         adminUserId: admin.id,
         body: noteBody,
@@ -59,10 +60,10 @@ export async function POST(request: NextRequest) {
     });
 
     // Manually fetch talent user data
-    const talentUser = await prisma.user.findUnique({
+    const talentUser = await prisma.users.findUnique({
       where: { id: talentUserId },
       select: {
-        profile: {
+        profiles: {
           select: {
             displayName: true,
             avatarUrl: true,

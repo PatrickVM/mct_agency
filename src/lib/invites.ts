@@ -6,8 +6,9 @@ export async function createInviteToken(email: string, createdById: string) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-  const inviteToken = await prisma.inviteToken.create({
+  const inviteToken = await prisma.invite_tokens.create({
     data: {
+      id: `invite-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       email,
       token,
       expiresAt,
@@ -19,7 +20,7 @@ export async function createInviteToken(email: string, createdById: string) {
 }
 
 export async function validateInviteToken(token: string) {
-  const inviteToken = await prisma.inviteToken.findUnique({
+  const inviteToken = await prisma.invite_tokens.findUnique({
     where: { token },
   });
 
@@ -39,7 +40,7 @@ export async function validateInviteToken(token: string) {
 }
 
 export async function consumeInviteToken(token: string) {
-  await prisma.inviteToken.update({
+  await prisma.invite_tokens.update({
     where: { token },
     data: { consumedAt: new Date() },
   });

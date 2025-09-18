@@ -1,7 +1,9 @@
 import QRCode from "qrcode-generator";
 
+type TypeNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+
 export function generateQRCode(data: string, size: number = 4): string {
-  const qr = QRCode(size, "M");
+  const qr = QRCode(size as TypeNumber, "M");
   qr.addData(data);
   qr.make();
 
