@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import Image from "next/image";
 import { Camera, Search, Calendar, User } from "lucide-react";
 
 interface GalleryPhoto {
@@ -23,11 +24,12 @@ function PhotoCard({ photo }: { photo: GalleryPhoto }) {
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/30 group">
       <div className="aspect-square relative bg-muted">
-        <img
+        <Image
           src={photo.url}
           alt={photo.originalName}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
 

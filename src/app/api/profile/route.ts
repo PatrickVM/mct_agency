@@ -2,18 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-
-const profileSchema = z.object({
-  displayName: z.string().min(2),
-  bio: z.string().optional(),
-  hobbies: z.array(z.string()).max(10),
-  socialLinks: z.object({
-    website: z.string().url().optional(),
-    instagram: z.string().optional(),
-    tiktok: z.string().optional(),
-  }).optional().nullable(),
-  avatarUrl: z.string().url().optional().or(z.literal("")).nullable(),
-});
+import { profileSchema, profilePatchSchema } from "@/lib/schemas/profile";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has a profile
-    if (user.profile) {
+    if (user.profiles) {
       return NextResponse.json(
         { success: false, message: "Profile already exists" },
         { status: 400 }
@@ -37,15 +26,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = profileSchema.parse(body);
 
-    const profile = await prisma.profile.create({
+    const profile = await prisma.profiles.create({
       data: {
+        id: `profile-${user.id}-${Date.now()}`,
         userId: user.id,
         displayName: validatedData.displayName,
         bio: validatedData.bio || null,
         hobbies: validatedData.hobbies,
-        socialLinks: validatedData.socialLinks || null,
+        socialLinks: validatedData.socialLinks || undefined,
         avatarUrl: validatedData.avatarUrl,
         isPublic: false,
+        updatedAt: new Date(),
       },
     });
 
@@ -58,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: "Invalid data", errors: error.errors },
+        { success: false, message: "Invalid data", errors: error.issues },
         { status: 400 }
       );
     }
@@ -81,7 +72,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if (!user.profile) {
+    if (!user.profiles) {
       return NextResponse.json(
         { success: false, message: "Profile not found" },
         { status: 404 }
@@ -89,14 +80,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validatedData = profileSchema.partial().parse(body);
+    const validatedData = profilePatchSchema.parse(body);
 
-    const profile = await prisma.profile.update({
+    const updateData: Record<string, unknown> = {
+      ...validatedData,
+      updatedAt: new Date(),
+    };
+
+    // Handle socialLinks null case
+    if (validatedData.socialLinks === null) {
+      updateData.socialLinks = undefined;
+    }
+
+    const profile = await prisma.profiles.update({
       where: { userId: user.id },
-      data: {
-        ...validatedData,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({
@@ -108,7 +106,7 @@ export async function PATCH(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: "Invalid data", errors: error.errors },
+        { success: false, message: "Invalid data", errors: error.issues },
         { status: 400 }
       );
     }

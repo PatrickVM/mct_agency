@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Trash2, Eye, Calendar, User, FolderOpen } from "lucide-react";
 import AdminUpload from "@/components/upload/admin-upload";
 import { useConfirmationModal } from "@/components/ui/confirmation-modal";
@@ -161,11 +162,12 @@ export default function PhotoManager() {
           {filteredPhotos.map((photo) => (
             <Card key={photo.id} className="overflow-hidden">
               <div className="aspect-square relative bg-muted">
-                <img
+                <Image
                   src={photo.url}
                   alt={photo.originalName}
                   className="w-full h-full object-cover"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 <div className="absolute top-2 left-2">
                   <Badge variant="secondary">{photo.folder}</Badge>

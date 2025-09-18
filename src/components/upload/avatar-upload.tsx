@@ -10,7 +10,7 @@ import { Upload, X, Camera } from "lucide-react";
 interface AvatarUploadProps {
   currentAvatarUrl?: string | null;
   userInitials: string;
-  onUploadSuccess?: (url: string) => void;
+  onUploadSuccess?: (url: string | null) => void;
 }
 
 export default function AvatarUpload({
@@ -31,7 +31,8 @@ export default function AvatarUpload({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB
       toast.error("File too large. Maximum size is 5MB");
       return;
     }
@@ -132,7 +133,10 @@ export default function AvatarUpload({
             {/* Avatar Preview */}
             <div className="relative">
               <Avatar className="h-24 w-24 border-4 border-primary/20">
-                <AvatarImage src={displayUrl || undefined} alt="Avatar preview" />
+                <AvatarImage
+                  src={displayUrl || undefined}
+                  alt="Avatar preview"
+                />
                 <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
                   {userInitials}
                 </AvatarFallback>

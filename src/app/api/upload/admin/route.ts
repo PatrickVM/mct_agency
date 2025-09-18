@@ -57,8 +57,9 @@ export async function POST(request: NextRequest) {
         );
 
         // Save to database
-        const adminPhoto = await prisma.adminPhoto.create({
+        const adminPhoto = await prisma.admin_photos.create({
           data: {
+            id: `photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             filename: uploadResult.filename,
             path: uploadResult.path,
             url: uploadResult.url,
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
             originalName: file.name,
             size: uploadResult.size,
             uploadedById: admin.id,
+            updatedAt: new Date(),
           },
         });
 

@@ -4,14 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "npm run build:check && next build --turbopack",
+    "build:check": "npm run db:check && npm run db:generate",
+    "build:production": "npm run db:deploy && npm run db:generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:deploy": "prisma migrate deploy",
+    "db:check": "prisma db pull --force || echo 'Database not accessible - ensure DATABASE_URL is set and database is running'",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:setup": "npm run db:deploy && npm run db:generate && npm run db:seed",
+    "health": "./scripts/health-check.sh",
+    "postinstall": "npm run db:generate"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.16.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",

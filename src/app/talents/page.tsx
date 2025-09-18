@@ -5,9 +5,22 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Suspense } from "react";
+import { JsonValue } from "@prisma/client/runtime/library";
+
+interface PublicProfile {
+  id: string;
+  displayName: string;
+  bio: string | null;
+  hobbies: string[];
+  avatarUrl: string | null;
+  socialLinks: JsonValue;
+  users: {
+    email: string;
+  };
+}
 
 async function getPublicProfiles(searchTerm?: string) {
-  const profiles = await prisma.profile.findMany({
+  const profiles = await prisma.profiles.findMany({
     where: {
       isPublic: true,
       ...(searchTerm && {
@@ -19,7 +32,7 @@ async function getPublicProfiles(searchTerm?: string) {
       }),
     },
     include: {
-      user: {
+      users: {
         select: { email: true },
       },
     },
@@ -31,7 +44,7 @@ async function getPublicProfiles(searchTerm?: string) {
   return profiles;
 }
 
-function ProfileCard({ profile }: { profile: any }) {
+function ProfileCard({ profile }: { profile: PublicProfile }) {
   const initials = profile.displayName
     .split(" ")
     .map((n: string) => n[0])
@@ -80,7 +93,7 @@ function ProfileCard({ profile }: { profile: any }) {
   );
 }
 
-function TalentGrid({ profiles }: { profiles: any[] }) {
+function TalentGrid({ profiles }: { profiles: PublicProfile[] }) {
   if (profiles.length === 0) {
     return (
       <div className="text-center py-16">

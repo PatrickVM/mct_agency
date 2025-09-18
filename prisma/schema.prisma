@@ -1,87 +1,67 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  role      String   @default("user") // 'admin' | 'user'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  profile     Profile?
-  notes       Note[]       @relation("AdminNotes")
-  adminPhotos AdminPhoto[] @relation("UploadedBy")
-
-  @@map("users")
-}
-
-model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  displayName String
-  bio         String?  @db.Text
-  hobbies     String[] @db.Text
-  socialLinks Json?    // { instagram?: string; x?: string; tiktok?: string; website?: string; ... }
-  avatarUrl   String?  // Supabase storage public URL or signed URL
-  isPublic    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("profiles")
-}
-
-model Note {
-  id           String   @id @default(cuid())
-  talentUserId String   // whose profile the note is about
-  adminUserId  String   // who wrote it
-  body         String   @db.Text
+model admin_photos {
+  id           String   @id
+  filename     String
+  path         String
+  url          String
+  folder       String
+  originalName String
+  size         Int
+  uploadedById String
   createdAt    DateTime @default(now())
-
-  // Relations
-  admin User @relation("AdminNotes", fields: [adminUserId], references: [id], onDelete: Cascade)
-
-  @@map("notes")
+  updatedAt    DateTime
+  users        users    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 }
 
-model InviteToken {
-  id          String    @id @default(cuid())
+model invite_tokens {
+  id          String    @id
   email       String
   token       String    @unique
   expiresAt   DateTime
   consumedAt  DateTime?
-  createdById String    // admin
+  createdById String
   createdAt   DateTime  @default(now())
-
-  @@map("invite_tokens")
 }
 
-model AdminPhoto {
-  id           String   @id @default(cuid())
-  filename     String
-  path         String   // relative path in storage
-  url          String   // public URL to access the file
-  folder       String   // folder category (gallery, marketing, etc.)
-  originalName String   // original filename before processing
-  size         Int      // file size in bytes
-  uploadedById String   // admin who uploaded it
+model notes {
+  id           String   @id
+  talentUserId String
+  adminUserId  String
+  body         String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  users        users    @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+}
 
-  // Relations
-  uploadedBy User @relation("UploadedBy", fields: [uploadedById], references: [id], onDelete: Cascade)
+model profiles {
+  id          String   @id
+  userId      String   @unique
+  displayName String
+  bio         String?
+  hobbies     String[]
+  socialLinks Json?
+  avatarUrl   String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  users       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  @@map("admin_photos")
+model users {
+  id           String         @id
+  email        String         @unique
+  role         String         @default("user")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  admin_photos admin_photos[]
+  notes        notes[]
+  profiles     profiles?
 }

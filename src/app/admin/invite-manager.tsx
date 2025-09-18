@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Mail, QrCode, Copy, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
 
 interface InviteToken {
@@ -210,7 +211,7 @@ export default function InviteManager({ adminId }: { adminId: string }) {
             </DialogHeader>
             <div className="text-center space-y-4">
               <div className="flex justify-center">
-                <img src={qrDataUrl} alt="QR Code" className="border rounded-lg" />
+                <Image src={qrDataUrl} alt="QR Code" className="border rounded-lg" width={200} height={200} />
               </div>
               <p className="text-sm text-muted-foreground">
                 Scan this QR code to accept the invitation

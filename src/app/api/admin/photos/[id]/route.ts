@@ -12,7 +12,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Find the photo
-    const photo = await prisma.adminPhoto.findUnique({
+    const photo = await prisma.admin_photos.findUnique({
       where: { id },
     });
 
@@ -33,7 +33,7 @@ export async function DELETE(
     }
 
     // Delete from database
-    await prisma.adminPhoto.delete({
+    await prisma.admin_photos.delete({
       where: { id },
     });
 

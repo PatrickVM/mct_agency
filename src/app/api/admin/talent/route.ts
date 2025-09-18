@@ -6,9 +6,9 @@ export async function GET() {
   try {
     const admin = await requireAdmin();
 
-    const profiles = await prisma.profile.findMany({
+    const profiles = await prisma.profiles.findMany({
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             email: true,

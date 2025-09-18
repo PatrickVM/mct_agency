@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
-import { requireAuth, signOut } from "@/lib/auth";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +17,77 @@ import {
   LogOut,
   ExternalLink,
   Mail,
-  Calendar
+  Calendar,
+  Menu,
+  X,
 } from "lucide-react";
 
-export default async function UserDashboard() {
-  const user = await requireAuth();
+interface UserData {
+  id: string;
+  email: string;
+  createdAt: string;
+  profile: {
+    displayName: string;
+    bio: string | null;
+    avatarUrl: string | null;
+    isPublic: boolean;
+    hobbies: string[];
+    socialLinks: Record<string, string>;
+    updatedAt: string;
+  };
+}
 
-  if (!user.profile) {
-    redirect("/onboarding");
+export default function UserDashboard() {
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        if (!data.user.profile) {
+          router.push('/onboarding');
+          return;
+        }
+      } else {
+        router.push('/auth/signin');
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      router.push('/auth/signin');
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' });
+      router.push('/');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-secondary/10 flex items-center justify-center">
+        <p className="text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!user || !user.profile) {
+    return null;
   }
 
   const profile = user.profile;
@@ -32,12 +97,7 @@ export default async function UserDashboard() {
     .join("")
     .toUpperCase();
 
-  const socialLinks = profile.socialLinks as Record<string, string> || {};
-
-  async function handleSignOut() {
-    "use server";
-    await signOut();
-  }
+  const socialLinks = profile.socialLinks || {};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-secondary/10">
@@ -47,27 +107,59 @@ export default async function UserDashboard() {
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors"
+              className="text-xl sm:text-2xl font-bold text-primary hover:text-primary/80 transition-colors"
             >
               Murray Creative
             </Link>
-            <Badge variant="outline">Dashboard</Badge>
+            <Badge variant="outline" className="hidden sm:inline-flex">Dashboard</Badge>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href="/gallery">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Gallery
               </Link>
             </Button>
-            <form action={handleSignOut}>
-              <Button variant="ghost" size="sm" type="submit">
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mb-6 p-4 bg-card border rounded-lg shadow-lg">
+            <div className="flex flex-col gap-2">
+              <Button variant="outline" size="sm" asChild className="justify-start">
+                <Link href="/gallery" onClick={() => setMobileMenuOpen(false)}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Gallery
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="justify-start">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
-            </form>
+            </div>
           </div>
-        </div>
+        )}
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 lg:w-fit lg:grid-cols-2">

@@ -12,24 +12,30 @@ export async function GET() {
   try {
     const admin = await requireAdmin();
 
-    const notes = await prisma.note.findMany({
+    const notes = await prisma.notes.findMany({
       where: { adminUserId: admin.id },
-      include: {
-        talentUser: {
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Manually fetch talent user data for each note
+    const notesWithTalentUser = await Promise.all(
+      notes.map(async (note) => {
+        const talentUser = await prisma.users.findUnique({
+          where: { id: note.talentUserId },
           select: {
-            profile: {
+            profiles: {
               select: {
                 displayName: true,
                 avatarUrl: true,
               },
             },
           },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        });
+        return { ...note, talentUser };
+      })
+    );
 
-    return NextResponse.json({ notes });
+    return NextResponse.json({ notes: notesWithTalentUser });
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Unauthorized" },
@@ -44,36 +50,40 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { talentUserId, body: noteBody } = createNoteSchema.parse(body);
 
-    const note = await prisma.note.create({
+    const note = await prisma.notes.create({
       data: {
+        id: `note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         talentUserId,
         adminUserId: admin.id,
         body: noteBody,
       },
-      include: {
-        talentUser: {
+    });
+
+    // Manually fetch talent user data
+    const talentUser = await prisma.users.findUnique({
+      where: { id: talentUserId },
+      select: {
+        profiles: {
           select: {
-            profile: {
-              select: {
-                displayName: true,
-                avatarUrl: true,
-              },
-            },
+            displayName: true,
+            avatarUrl: true,
           },
         },
       },
     });
 
+    const noteWithTalentUser = { ...note, talentUser };
+
     return NextResponse.json({
       success: true,
-      note,
+      note: noteWithTalentUser,
     });
   } catch (error) {
     console.error("Create note error:", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: "Invalid data", errors: error.errors },
+        { success: false, message: "Invalid data", errors: error.issues },
         { status: 400 }
       );
     }

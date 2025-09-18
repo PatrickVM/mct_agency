@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
 
     // Fetch photos from the "gallery" folder only (public photos)
-    const photos = await prisma.adminPhoto.findMany({
+    const photos = await prisma.admin_photos.findMany({
       where: {
         folder: "gallery",
         ...(search && {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         }),
       },
       include: {
-        uploadedBy: {
+        users: {
           select: {
             email: true,
           },

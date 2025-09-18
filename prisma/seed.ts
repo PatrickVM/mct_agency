@@ -4,26 +4,31 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Create an admin user
-  const admin = await prisma.user.upsert({
+  const admin = await prisma.users.upsert({
     where: { email: "admin@murraycreative.com" },
     update: {},
     create: {
+      id: "admin-user-id",
       email: "admin@murraycreative.com",
       role: "admin",
+      updatedAt: new Date(),
     },
   });
 
   console.log("Created admin user:", admin);
 
   // Create a sample talent user
-  const talent = await prisma.user.upsert({
+  const talent = await prisma.users.upsert({
     where: { email: "talent@example.com" },
     update: {},
     create: {
+      id: "talent-user-id",
       email: "talent@example.com",
       role: "user",
-      profile: {
+      updatedAt: new Date(),
+      profiles: {
         create: {
+          id: "talent-profile-id",
           displayName: "Jane Doe",
           bio: "Aspiring actress and model with a passion for storytelling and creative expression.",
           hobbies: ["Acting", "Photography", "Dancing", "Yoga"],
@@ -32,11 +37,12 @@ async function main() {
             website: "https://janedoe.com",
           },
           isPublic: true,
+          updatedAt: new Date(),
         },
       },
     },
     include: {
-      profile: true,
+      profiles: true,
     },
   });
 

@@ -14,9 +14,9 @@ export async function getCurrentUser() {
     const session = JSON.parse(sessionCookie.value);
 
     // Get user from our database
-    const dbUser = await prisma.user.findUnique({
+    const dbUser = await prisma.users.findUnique({
       where: { id: session.userId },
-      include: { profile: true },
+      include: { profiles: true },
     });
 
     return dbUser;

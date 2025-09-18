@@ -17,7 +17,7 @@ export async function PATCH(
     const body = await request.json();
     const { isPublic } = updateProfileSchema.parse(body);
 
-    const profile = await prisma.profile.update({
+    const profile = await prisma.profiles.update({
       where: { id: profileId },
       data: {
         ...(isPublic !== undefined && { isPublic }),

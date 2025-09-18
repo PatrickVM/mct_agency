@@ -32,6 +32,17 @@ interface TalentOption {
   };
 }
 
+interface TalentProfile {
+  user: {
+    id: string;
+    email: string;
+    createdAt: string;
+  };
+  userId?: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
 export default function NotesManager({ adminId }: { adminId: string }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [talentOptions, setTalentOptions] = useState<TalentOption[]>([]);
@@ -63,7 +74,7 @@ export default function NotesManager({ adminId }: { adminId: string }) {
     try {
       const response = await fetch("/api/admin/talent");
       const data = await response.json();
-      setTalentOptions(data.profiles?.map((p: any) => ({
+      setTalentOptions(data.profiles?.map((p: TalentProfile) => ({
         id: p.user.id || p.userId,
         email: p.user.email,
         profile: p

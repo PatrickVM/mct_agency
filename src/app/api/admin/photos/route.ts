@@ -6,9 +6,9 @@ export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin();
 
-    const photos = await prisma.adminPhoto.findMany({
+    const photos = await prisma.admin_photos.findMany({
       include: {
-        uploadedBy: {
+        users: {
           select: {
             email: true,
           },
