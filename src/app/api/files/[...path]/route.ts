@@ -66,7 +66,7 @@ export async function GET(
       "Content-Length": fileBuffer.length.toString(),
     });
 
-    return new NextResponse(fileBuffer, { headers });
+    return new NextResponse(new Uint8Array(fileBuffer), { headers });
   } catch (error) {
     console.error("File serving error:", error);
     return new NextResponse("Internal server error", { status: 500 });

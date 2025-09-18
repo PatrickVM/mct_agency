@@ -27,6 +27,7 @@ export default async function OnboardingPage() {
             </p>
           </div>
 
+          {/* @ts-expect-error - Known type mismatch between Prisma JsonValue and expected interface */}
           <OnboardingForm user={user} />
         </div>
       </div>

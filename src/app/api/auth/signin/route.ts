@@ -29,6 +29,9 @@ export async function POST(request: NextRequest) {
           email,
           role: "admin",
         },
+        include: {
+          profile: true,
+        },
       });
       isValidLogin = true;
     } else if (email === "user@example.com" && password === "user123") {

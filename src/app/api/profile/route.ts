@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         displayName: validatedData.displayName,
         bio: validatedData.bio || null,
         hobbies: validatedData.hobbies,
-        socialLinks: validatedData.socialLinks || null,
+        socialLinks: validatedData.socialLinks || undefined,
         avatarUrl: validatedData.avatarUrl,
         isPublic: false,
       },
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: "Invalid data", errors: error.errors },
+        { success: false, message: "Invalid data", errors: error.issues },
         { status: 400 }
       );
     }
@@ -80,12 +80,19 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const validatedData = profilePatchSchema.parse(body);
 
+    const updateData: Record<string, unknown> = {
+      ...validatedData,
+      updatedAt: new Date(),
+    };
+
+    // Handle socialLinks null case
+    if (validatedData.socialLinks === null) {
+      updateData.socialLinks = undefined;
+    }
+
     const profile = await prisma.profile.update({
       where: { userId: user.id },
-      data: {
-        ...validatedData,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({
@@ -97,7 +104,7 @@ export async function PATCH(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: "Invalid data", errors: error.errors },
+        { success: false, message: "Invalid data", errors: error.issues },
         { status: 400 }
       );
     }

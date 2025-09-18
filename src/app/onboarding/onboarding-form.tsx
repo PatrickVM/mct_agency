@@ -23,11 +23,19 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+interface Profile {
+  displayName: string;
+  bio: string | null;
+  hobbies: string[];
+  socialLinks: Record<string, string> | null;
+  avatarUrl: string | null;
+}
+
 interface OnboardingFormProps {
   user: {
     id: string;
     email: string;
-    profile: any;
+    profile: Profile | null;
   };
   mode?: "create" | "edit";
   initialProfile?: {
@@ -163,7 +171,7 @@ export default function OnboardingForm({
         toast.success("Profile created successfully!");
       } else {
         // Edit (PATCH)
-        const patchPayload: Record<string, any> = {
+        const patchPayload: Partial<Profile> & { displayName: string; bio: string; hobbies: string[]; socialLinks: Record<string, string> | null } = {
           displayName: data.displayName,
           bio: data.bio || "",
           hobbies,

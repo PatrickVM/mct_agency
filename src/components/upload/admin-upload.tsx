@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Upload, X, Folder, Image as ImageIcon, AlertCircle } from "lucide-react";
 
 interface AdminUploadProps {
@@ -17,6 +18,12 @@ interface UploadFile {
   preview?: string;
   status: 'pending' | 'uploading' | 'success' | 'error';
   error?: string;
+}
+
+interface UploadedFile {
+  originalName: string;
+  filename: string;
+  url: string;
 }
 
 const FOLDERS = [
@@ -134,7 +141,7 @@ export default function AdminUpload({ onUploadSuccess }: AdminUploadProps) {
         // Mark successful uploads
         setFiles(prev => prev.map(f => {
           // First try exact match with originalName (most reliable)
-          let wasUploaded = uploaded?.some((u: any) => u.originalName === f.file.name) || false;
+          let wasUploaded = uploaded?.some((u: UploadedFile) => u.originalName === f.file.name) || false;
 
           // Fallback to normalized filename matching if exact match fails
           if (!wasUploaded) {
@@ -143,7 +150,7 @@ export default function AdminUpload({ onUploadSuccess }: AdminUploadProps) {
               .toLowerCase() // Convert to lowercase
               .replace(/[^a-zA-Z0-9]/g, '-'); // Replace non-alphanumeric with dashes
 
-            wasUploaded = uploaded?.some((u: any) => {
+            wasUploaded = uploaded?.some((u: UploadedFile) => {
               if (!u.filename) return false;
               const uploadedFileName = u.filename.toLowerCase();
               return uploadedFileName.includes(originalBaseName);
@@ -347,10 +354,12 @@ export default function AdminUpload({ onUploadSuccess }: AdminUploadProps) {
                   {/* File preview */}
                   <div className="w-12 h-12 bg-muted rounded flex items-center justify-center overflow-hidden">
                     {uploadFile.preview ? (
-                      <img
+                      <Image
                         src={uploadFile.preview}
                         alt={uploadFile.file.name}
                         className="w-full h-full object-cover"
+                        width={48}
+                        height={48}
                       />
                     ) : (
                       <ImageIcon className="h-6 w-6 text-muted-foreground" />

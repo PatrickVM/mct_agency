@@ -6,6 +6,18 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Suspense } from "react";
 
+interface PublicProfile {
+  id: string;
+  displayName: string;
+  bio: string | null;
+  hobbies: string[];
+  avatarUrl: string | null;
+  socialLinks: Record<string, string> | null;
+  user: {
+    email: string;
+  };
+}
+
 async function getPublicProfiles(searchTerm?: string) {
   const profiles = await prisma.profile.findMany({
     where: {
@@ -31,7 +43,7 @@ async function getPublicProfiles(searchTerm?: string) {
   return profiles;
 }
 
-function ProfileCard({ profile }: { profile: any }) {
+function ProfileCard({ profile }: { profile: PublicProfile }) {
   const initials = profile.displayName
     .split(" ")
     .map((n: string) => n[0])
@@ -80,7 +92,7 @@ function ProfileCard({ profile }: { profile: any }) {
   );
 }
 
-function TalentGrid({ profiles }: { profiles: any[] }) {
+function TalentGrid({ profiles }: { profiles: PublicProfile[] }) {
   if (profiles.length === 0) {
     return (
       <div className="text-center py-16">

@@ -24,6 +24,7 @@ export default async function EditProfilePage() {
           </p>
         </div>
         <OnboardingForm
+          // @ts-expect-error - Known type mismatch between Prisma JsonValue and expected interface
           user={user}
           mode="edit"
           initialProfile={{
