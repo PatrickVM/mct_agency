@@ -126,26 +126,61 @@ export default function InviteManager({ adminId }: { adminId: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <form onSubmit={createInvite} className="flex gap-2 flex-1">
+          <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+            <form
+              onSubmit={createInvite}
+              className="flex flex-col gap-2 md:flex-row md:items-center"
+            >
               <Input
                 type="email"
                 placeholder="email@example.com"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 required
-                className="flex-1"
+                className="w-full"
               />
-              <Button type="submit" disabled={creating || !newEmail}>
+              <Button
+                type="submit"
+                disabled={creating || !newEmail}
+                className="w-full md:w-auto"
+              >
                 <Mail className="h-4 w-4 mr-2" />
                 {creating ? "Sending..." : "Send Invite"}
               </Button>
             </form>
-            <Button onClick={generateQR} disabled={creating} variant="outline">
+            <Button
+              onClick={generateQR}
+              disabled={creating}
+              variant="outline"
+              className="w-full md:w-auto"
+            >
               <QrCode className="h-4 w-4 mr-2" />
               Generate QR
             </Button>
           </div>
+          {showQR && (
+            <div className="space-y-4 rounded-lg border p-4 md:hidden">
+              <div className="text-center space-y-3">
+                <p className="font-medium">QR Code Invite</p>
+                <div className="flex justify-center">
+                  <Image
+                    src={qrDataUrl}
+                    alt="QR Code"
+                    className="h-auto w-full max-w-[200px] rounded-lg border"
+                    width={200}
+                    height={200}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Scan this QR code to accept the invitation
+                </p>
+              </div>
+              <Button onClick={() => copyInviteLink(showQR)} className="w-full">
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Invite Link
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -204,28 +239,33 @@ export default function InviteManager({ adminId }: { adminId: string }) {
 
       {/* QR Dialog */}
       {showQR && (
-        <Dialog open={!!showQR} onOpenChange={() => setShowQR(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>QR Code Invite</DialogTitle>
-            </DialogHeader>
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <Image src={qrDataUrl} alt="QR Code" className="border rounded-lg" width={200} height={200} />
+        <div className="hidden md:block">
+          <Dialog open={!!showQR} onOpenChange={() => setShowQR(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>QR Code Invite</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 text-center">
+                <div className="flex justify-center">
+                  <Image
+                    src={qrDataUrl}
+                    alt="QR Code"
+                    className="rounded-lg border"
+                    width={200}
+                    height={200}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Scan this QR code to accept the invitation
+                </p>
+                <Button onClick={() => copyInviteLink(showQR)} className="w-full">
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Invite Link
+                </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Scan this QR code to accept the invitation
-              </p>
-              <Button
-                onClick={() => copyInviteLink(showQR)}
-                className="w-full"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Invite Link
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       )}
     </div>
   );
