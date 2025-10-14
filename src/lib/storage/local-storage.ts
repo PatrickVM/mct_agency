@@ -2,10 +2,18 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { StorageService, UploadResult } from './types';
 
+// Image processing configuration type
+interface ImageConfig {
+  width?: number;
+  height?: number;
+  quality?: number;
+  format?: 'webp' | 'jpeg' | 'png';
+}
+
 // Conditionally import image processor only in development
-let processImage: ((buffer: Buffer, options: any) => Promise<Buffer>) | undefined;
-let AVATAR_CONFIG: any;
-let ADMIN_PHOTO_CONFIG: any;
+let processImage: ((buffer: Buffer, options: ImageConfig) => Promise<Buffer>) | undefined;
+let AVATAR_CONFIG: ImageConfig | undefined;
+let ADMIN_PHOTO_CONFIG: ImageConfig | undefined;
 
 if (process.env.NODE_ENV !== 'production') {
   try {
