@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const admin = await requireAdmin();
 
-    const profiles = await prisma.profiles.findMany({
+    const profilesData = await prisma.profiles.findMany({
       include: {
         users: {
           select: {
@@ -18,6 +18,12 @@ export async function GET() {
       },
       orderBy: { updatedAt: "desc" },
     });
+
+    // Transform the response to use 'user' instead of 'users'
+    const profiles = profilesData.map(({ users, ...profile }) => ({
+      ...profile,
+      user: users,
+    }));
 
     return NextResponse.json({ profiles });
   } catch (error) {

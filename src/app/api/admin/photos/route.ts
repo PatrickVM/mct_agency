@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin();
 
-    const photos = await prisma.admin_photos.findMany({
+    const photosData = await prisma.admin_photos.findMany({
       include: {
         users: {
           select: {
@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
         createdAt: "desc",
       },
     });
+
+    // Transform the response to use 'uploadedBy' instead of 'users'
+    const photos = photosData.map(({ users, ...photo }) => ({
+      ...photo,
+      uploadedBy: users,
+    }));
 
     return NextResponse.json({
       success: true,
