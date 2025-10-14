@@ -126,26 +126,25 @@ export default function InviteManager({ adminId }: { adminId: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <form onSubmit={createInvite} className="flex gap-2 flex-1">
-              <Input
-                type="email"
-                placeholder="email@example.com"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                required
-                className="flex-1"
-              />
-              <Button type="submit" disabled={creating || !newEmail}>
+          <form onSubmit={createInvite} className="space-y-3">
+            <Input
+              type="email"
+              placeholder="email@example.com"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              required
+            />
+            <div className="flex gap-2">
+              <Button type="submit" disabled={creating || !newEmail} className="flex-1">
                 <Mail className="h-4 w-4 mr-2" />
                 {creating ? "Sending..." : "Send Invite"}
               </Button>
-            </form>
-            <Button onClick={generateQR} disabled={creating} variant="outline">
-              <QrCode className="h-4 w-4 mr-2" />
-              Generate QR
-            </Button>
-          </div>
+              <Button onClick={generateQR} disabled={creating} variant="outline" className="flex-1">
+                <QrCode className="h-4 w-4 mr-2" />
+                Generate QR
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
 
@@ -164,37 +163,30 @@ export default function InviteManager({ adminId }: { adminId: string }) {
               {invites.map((invite) => (
                 <div
                   key={invite.id}
-                  className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
+                  className="flex flex-col gap-3 p-4 bg-muted/30 rounded-lg"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="font-medium">
-                        {invite.email || "QR Code Invite"}
-                      </span>
-                      {getStatusBadge(invite)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Created: {new Date(invite.createdAt).toLocaleDateString()}
-                      {" • "}
-                      Expires: {new Date(invite.expiresAt).toLocaleDateString()}
-                      {invite.consumedAt && (
-                        <>
-                          {" • "}
-                          Used: {new Date(invite.consumedAt).toLocaleDateString()}
-                        </>
-                      )}
-                    </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium break-words flex-1 min-w-0">
+                      {invite.email || "QR Code Invite"}
+                    </span>
+                    {getStatusBadge(invite)}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyInviteLink(invite.token)}
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copy Link
-                    </Button>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <div>Created: {new Date(invite.createdAt).toLocaleDateString()}</div>
+                    <div>Expires: {new Date(invite.expiresAt).toLocaleDateString()}</div>
+                    {invite.consumedAt && (
+                      <div>Used: {new Date(invite.consumedAt).toLocaleDateString()}</div>
+                    )}
                   </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => copyInviteLink(invite.token)}
+                    className="w-full"
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Copy Link
+                  </Button>
                 </div>
               ))}
             </div>
