@@ -1,6 +1,7 @@
 import { StorageService } from './types';
 import { LocalStorageService } from './local-storage';
 import { SupabaseStorageService } from './supabase-storage';
+import { SupabaseStorageAdminService } from './supabase-storage-admin';
 
 // Storage factory - auto-detects environment and selects appropriate provider
 export function createStorageService(): StorageService {
@@ -22,7 +23,8 @@ export function createStorageService(): StorageService {
     case 'local':
       return new LocalStorageService();
     case 'supabase':
-      return new SupabaseStorageService();
+      // Use admin service with service role key for server-side operations
+      return new SupabaseStorageAdminService();
     default:
       throw new Error(`Unknown storage provider: ${actualProvider}`);
   }

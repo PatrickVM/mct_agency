@@ -48,14 +48,58 @@ NEXTAUTH_SECRET=your-secret-key
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-## 6. Test the Setup
+## 6. Run Database Migrations
+
+Apply the Supabase migrations to set up RLS policies and storage buckets:
+
+```bash
+# Navigate to your project directory
+cd murray-creative
+
+# Apply all migrations (or use Supabase CLI)
+# Option 1: Using Supabase CLI
+supabase db push
+
+# Option 2: Manually run migrations in Supabase SQL Editor
+# - Go to Supabase Dashboard → SQL Editor
+# - Copy and paste each migration file from supabase/migrations/
+# - Run in order: 001, 002, 003
+```
+
+### Migrations Overview:
+- `001_initial_schema.sql` - RLS policies for users, profiles, notes, invite_tokens
+- `002_storage_setup.sql` - Avatars storage bucket and policies
+- `003_photos_storage_setup.sql` - Photos storage bucket and policies (for admin photo uploads)
+
+## 7. Verify Storage Buckets
+
+After running migrations, verify the storage buckets were created:
+
+1. Go to **Storage** in Supabase Dashboard
+2. You should see two buckets:
+   - **avatars** - For user profile avatars
+   - **photos** - For admin-uploaded photos (gallery, marketing, events, misc)
+
+### Photos Bucket Folder Structure:
+- `gallery/` - Public photos (visible on /gallery page)
+- `marketing/` - Private marketing materials (admin-only)
+- `events/` - Private event photos (admin-only)
+- `misc/` - Private miscellaneous photos (admin-only)
+
+## 8. Test the Setup
 
 1. Restart your development server
 2. Go to `/admin` and create an invite
 3. The magic link should now work properly
+4. Test admin photo upload:
+   - Go to `/admin` → Photos tab
+   - Upload photos to different folders
+   - Verify gallery folder photos appear on `/gallery` page
 
 ## Troubleshooting
 
 - **"Invalid API key" error**: Check that `SUPABASE_SERVICE_ROLE_KEY` is correct
 - **Magic link not working**: Verify redirect URLs in Supabase dashboard
 - **Email not sending**: Check SMTP configuration in Supabase dashboard
+- **Photo upload fails**: Verify `photos` storage bucket exists and RLS policies are applied
+- **Gallery photos not visible**: Check that photos are uploaded to `gallery` folder
