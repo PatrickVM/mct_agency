@@ -58,9 +58,9 @@ export class SupabaseStorageAdminService implements StorageService {
       if (error) {
         console.error('Supabase storage error details:', {
           message: error.message,
-          statusCode: error.statusCode,
           bucketName: this.bucketName,
-          filePath
+          filePath,
+          error
         });
         throw new Error(`Upload failed: ${error.message}`);
       }
