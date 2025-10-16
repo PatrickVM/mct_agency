@@ -41,13 +41,13 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Password set successfully",
     });
-  } catch (error) {
-    console.error("Set password error:", error);
+  } catch (err) {
+    console.error("Set password error:", err);
 
     // Handle Zod validation errors
-    if (error instanceof z.ZodError) {
+    if (err instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: error.errors[0].message },
+        { success: false, message: err.errors[0].message },
         { status: 400 }
       );
     }
