@@ -21,16 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json();
-    const validation = setPasswordSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { success: false, message: validation.error.errors[0].message },
-        { status: 400 }
-      );
-    }
-
-    const { password } = validation.data;
+    const { password } = setPasswordSchema.parse(body);
 
     // Update password in Supabase
     const supabase = await createClient();
@@ -52,6 +43,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Set password error:", error);
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, message: error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }
