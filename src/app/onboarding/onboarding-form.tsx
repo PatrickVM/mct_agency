@@ -169,6 +169,8 @@ export default function OnboardingForm({
         }
 
         toast.success("Profile created successfully!");
+        // Redirect to password setup for new users
+        router.push("/auth/set-password?firstTime=true");
       } else {
         // Edit (PATCH)
         const patchPayload: Partial<Profile> & { displayName: string; bio: string; hobbies: string[]; socialLinks: Record<string, string> | null } = {
@@ -196,8 +198,9 @@ export default function OnboardingForm({
         }
 
         toast.success("Profile updated");
+        // Redirect to app for profile edits
+        router.push("/app");
       }
-      router.push("/app");
     } catch (error) {
       console.error("Profile creation failed:", error);
       toast.error(
